@@ -14,9 +14,12 @@ from sklearn.model_selection import GridSearchCV
 
 # Define a pipeline to search for the best combination of PCA truncation
 # and classifier regularization.
+# 实例化一个SGDC
 logistic = SGDClassifier(loss='log', penalty='l2', early_stopping=True,
                          max_iter=10000, tol=1e-5, random_state=0)
+# 实例化PCA
 pca = PCA()
+# 构造Pipeline
 pipe = Pipeline(steps=[('pca', pca), ('logistic', logistic)])
 
 digits = datasets.load_digits()
@@ -24,20 +27,27 @@ X_digits = digits.data
 y_digits = digits.target
 
 # Parameters of pipelines can be set using ‘__’ separated parameter names:
+# 设置GridSearch的搜索空间参数
 param_grid = {
     'pca__n_components': [5, 20, 30, 40, 50, 64],
     'logistic__alpha': np.logspace(-4, 4, 5),
 }
+
+# 顶一个实例化一个GridSearchCV的对象
 search = GridSearchCV(pipe, param_grid, iid=False, cv=5,
                       return_train_score=False)
+# 加载到训练数据集上
 search.fit(X_digits, y_digits)
-print("Best parameter (CV score=%0.3f):" % search.best_score_)
-print(search.best_params_)
+# print("Best parameter (CV score=%0.3f):" % search.best_score_)
+# print(search.best_params_)
 
 # Plot the PCA spectrum
+# 用PCA去使用训练集数据
+# 得到PCA主成分数量的解释程度
 pca.fit(X_digits)
-
+# 绘制一幅图，有两个subplot
 fig, (ax0, ax1) = plt.subplots(nrows=2, sharex=True, figsize=(6, 6))
+print(pca.explained_variance_ratio_.shape)
 ax0.plot(pca.explained_variance_ratio_, linewidth=2)
 ax0.set_ylabel('PCA explained variance')
 
@@ -56,5 +66,6 @@ best_clfs.plot(x=components_col, y='mean_test_score', yerr='std_test_score',
 ax1.set_ylabel('Classification accuracy (val)')
 ax1.set_xlabel('n_components')
 
+# 绘制的图形额显示形式
 plt.tight_layout()
 plt.show()
